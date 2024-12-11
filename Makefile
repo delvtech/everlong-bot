@@ -6,7 +6,7 @@ build-types:
 	../everlong/out/IAprOracle.sol/ \
 	../everlong/out/IEverlongEvents.sol/ \
 	../everlong/out/IEverlongStrategy.sol/ \
-	../everlong/out/IEverlongStrategyFactory.sol/ \
 	../everlong/out/IEverlongStrategyKeeper.sol/ \
+	../everlong/out/IPermissionedStrategy.sol/ \
 	../everlong/out/IRoleManager.sol/ \
 	../everlong/out/IRoleManagerFactory.sol/ \

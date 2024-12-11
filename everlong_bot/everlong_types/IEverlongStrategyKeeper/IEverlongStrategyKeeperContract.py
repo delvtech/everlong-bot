@@ -96,6 +96,13 @@ ieverlongstrategykeeper_abi: ABI = cast(
         },
         {
             "type": "function",
+            "name": "name",
+            "inputs": [],
+            "outputs": [{"name": "", "type": "string", "internalType": "string"}],
+            "stateMutability": "pure",
+        },
+        {
+            "type": "function",
             "name": "owner",
             "inputs": [],
             "outputs": [{"name": "", "type": "address", "internalType": "address"}],
@@ -114,6 +121,13 @@ ieverlongstrategykeeper_abi: ABI = cast(
         {"type": "function", "name": "renounceOwnership", "inputs": [], "outputs": [], "stateMutability": "nonpayable"},
         {
             "type": "function",
+            "name": "roleManager",
+            "inputs": [],
+            "outputs": [{"name": "", "type": "address", "internalType": "address"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
             "name": "setRoleManager",
             "inputs": [{"name": "_roleManager", "type": "address", "internalType": "address"}],
             "outputs": [],
@@ -125,6 +139,40 @@ ieverlongstrategykeeper_abi: ABI = cast(
             "inputs": [{"name": "_trigger", "type": "address", "internalType": "address"}],
             "outputs": [],
             "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
+            "name": "shouldProcessReport",
+            "inputs": [
+                {"name": "_vault", "type": "address", "internalType": "address"},
+                {"name": "_strategy", "type": "address", "internalType": "address"},
+            ],
+            "outputs": [{"name": "shouldProcessReport_", "type": "bool", "internalType": "bool"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "shouldStrategyReport",
+            "inputs": [{"name": "_strategy", "type": "address", "internalType": "address"}],
+            "outputs": [{"name": "shouldStrategyReport_", "type": "bool", "internalType": "bool"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "shouldTend",
+            "inputs": [{"name": "_strategy", "type": "address", "internalType": "address"}],
+            "outputs": [{"name": "shouldTend_", "type": "bool", "internalType": "bool"}],
+            "stateMutability": "view",
+        },
+        {
+            "type": "function",
+            "name": "shouldUpdateDebt",
+            "inputs": [
+                {"name": "_vault", "type": "address", "internalType": "address"},
+                {"name": "_strategy", "type": "address", "internalType": "address"},
+            ],
+            "outputs": [{"name": "shouldUpdateDebt_", "type": "bool", "internalType": "bool"}],
+            "stateMutability": "view",
         },
         {
             "type": "function",
@@ -172,6 +220,13 @@ ieverlongstrategykeeper_abi: ABI = cast(
             "inputs": [{"name": "newOwner", "type": "address", "internalType": "address"}],
             "outputs": [],
             "stateMutability": "nonpayable",
+        },
+        {
+            "type": "function",
+            "name": "trigger",
+            "inputs": [],
+            "outputs": [{"name": "", "type": "address", "internalType": "address"}],
+            "stateMutability": "view",
         },
         {
             "type": "function",
@@ -537,6 +592,99 @@ class IEverlongStrategyKeeperKindContractFunction(PypechainOverloadedFunctions):
         return out
 
 
+class IEverlongStrategyKeeperNameContractFunction0(PypechainContractFunction):
+    """ContractFunction for the name() method."""
+
+    _function_name = "name"
+    _type_signature = expand_struct_type_str(tuple([]), structs)
+    _error_class = IEverlongStrategyKeeperContractErrors
+
+    def call(
+        self,
+        transaction: TxParams | None = None,
+        block_identifier: BlockIdentifier | None = None,
+        state_override: StateOverride | None = None,
+        ccip_read_enabled: bool | None = None,
+    ) -> str:
+        """returns str."""
+        # We handle the block identifier = None case here for typing.
+        if block_identifier is None:
+            block_identifier = self.w3.eth.default_block
+
+        # Define the expected return types from the smart contract call
+        return_types = str
+
+        # Call the function
+        raw_values = self._call(transaction, block_identifier, state_override, ccip_read_enabled)
+
+        return cast(str, rename_returned_types(structs, return_types, raw_values))
+
+
+class IEverlongStrategyKeeperNameContractFunction(PypechainOverloadedFunctions):
+    """ContractFunction for the name method."""
+
+    # super() call methods are generic, while our version adds values & types
+    # pylint: disable=arguments-differ# disable this warning when there is overloading
+    # pylint: disable=function-redefined
+
+    _function_name = "name"
+
+    # Make lookup for function signature -> overloaded function
+    # The function signatures are python types, as we need to do a
+    # lookup of arguments passed in to contract function
+    _functions: dict[str, PypechainContractFunction]
+
+    @overload
+    def __call__(self) -> IEverlongStrategyKeeperNameContractFunction0:  # type: ignore
+        ...
+
+    def __call__(self, *args, **kwargs) -> IEverlongStrategyKeeperNameContractFunction:  # type: ignore
+        # Special case when there are no args or kwargs
+        if len(args) == 0 and len(kwargs) == 0:
+            # We need to specify the element identifier as the function call without arguments.
+            # Despite this setting the member variable `abi_element_identifier`
+            # that's shared across this object, this field gets overwritten in the
+            # clone if arguments are provided.
+            self.abi_element_identifier = self._function_name + "()"
+            clone = super().__call__()
+        else:
+            clone = super().__call__(
+                *(dataclass_to_tuple(arg) for arg in args),
+                **{key: dataclass_to_tuple(arg) for key, arg in kwargs.items()},
+            )
+
+        # Arguments is the flattened set of arguments from args and kwargs, ordered by the abi
+        # We get the python types of the args passed in, but remapped from tuples -> dataclasses
+        arg_types = get_arg_type_names(clone.arguments)
+
+        # Grab the relevant kwargs when factory was called.
+        factory_kwargs = self._factory_kwargs
+        factory_kwargs["abi_element_identifier"] = clone.abi_element_identifier
+
+        function_obj = self._overloaded_functions[arg_types].factory(self._function_name, **factory_kwargs)
+
+        function_obj.args = clone.args
+        function_obj.kwargs = clone.kwargs
+
+        # The `@overload` of `__call__` takes care of setting the type of this object correctly
+        return function_obj  # type: ignore
+
+    @classmethod
+    def factory(cls, class_name: str, **kwargs: Any) -> Self:
+        out = super().factory(class_name, **kwargs)
+        # Store the factory args for downstream consumption
+        out._factory_kwargs = kwargs
+
+        # We initialize our overridden functions here.
+        # Note that we use the initialized object to ensure each function
+        # is attached to the instantiated object
+        # (attached to a specific web3 and contract address)
+        out._overloaded_functions = {
+            IEverlongStrategyKeeperNameContractFunction0._type_signature: IEverlongStrategyKeeperNameContractFunction0,
+        }
+        return out
+
+
 class IEverlongStrategyKeeperOwnerContractFunction0(PypechainContractFunction):
     """ContractFunction for the owner() method."""
 
@@ -806,6 +954,99 @@ class IEverlongStrategyKeeperRenounceOwnershipContractFunction(PypechainOverload
         return out
 
 
+class IEverlongStrategyKeeperRoleManagerContractFunction0(PypechainContractFunction):
+    """ContractFunction for the roleManager() method."""
+
+    _function_name = "roleManager"
+    _type_signature = expand_struct_type_str(tuple([]), structs)
+    _error_class = IEverlongStrategyKeeperContractErrors
+
+    def call(
+        self,
+        transaction: TxParams | None = None,
+        block_identifier: BlockIdentifier | None = None,
+        state_override: StateOverride | None = None,
+        ccip_read_enabled: bool | None = None,
+    ) -> str:
+        """returns str."""
+        # We handle the block identifier = None case here for typing.
+        if block_identifier is None:
+            block_identifier = self.w3.eth.default_block
+
+        # Define the expected return types from the smart contract call
+        return_types = str
+
+        # Call the function
+        raw_values = self._call(transaction, block_identifier, state_override, ccip_read_enabled)
+
+        return cast(str, rename_returned_types(structs, return_types, raw_values))
+
+
+class IEverlongStrategyKeeperRoleManagerContractFunction(PypechainOverloadedFunctions):
+    """ContractFunction for the roleManager method."""
+
+    # super() call methods are generic, while our version adds values & types
+    # pylint: disable=arguments-differ# disable this warning when there is overloading
+    # pylint: disable=function-redefined
+
+    _function_name = "roleManager"
+
+    # Make lookup for function signature -> overloaded function
+    # The function signatures are python types, as we need to do a
+    # lookup of arguments passed in to contract function
+    _functions: dict[str, PypechainContractFunction]
+
+    @overload
+    def __call__(self) -> IEverlongStrategyKeeperRoleManagerContractFunction0:  # type: ignore
+        ...
+
+    def __call__(self, *args, **kwargs) -> IEverlongStrategyKeeperRoleManagerContractFunction:  # type: ignore
+        # Special case when there are no args or kwargs
+        if len(args) == 0 and len(kwargs) == 0:
+            # We need to specify the element identifier as the function call without arguments.
+            # Despite this setting the member variable `abi_element_identifier`
+            # that's shared across this object, this field gets overwritten in the
+            # clone if arguments are provided.
+            self.abi_element_identifier = self._function_name + "()"
+            clone = super().__call__()
+        else:
+            clone = super().__call__(
+                *(dataclass_to_tuple(arg) for arg in args),
+                **{key: dataclass_to_tuple(arg) for key, arg in kwargs.items()},
+            )
+
+        # Arguments is the flattened set of arguments from args and kwargs, ordered by the abi
+        # We get the python types of the args passed in, but remapped from tuples -> dataclasses
+        arg_types = get_arg_type_names(clone.arguments)
+
+        # Grab the relevant kwargs when factory was called.
+        factory_kwargs = self._factory_kwargs
+        factory_kwargs["abi_element_identifier"] = clone.abi_element_identifier
+
+        function_obj = self._overloaded_functions[arg_types].factory(self._function_name, **factory_kwargs)
+
+        function_obj.args = clone.args
+        function_obj.kwargs = clone.kwargs
+
+        # The `@overload` of `__call__` takes care of setting the type of this object correctly
+        return function_obj  # type: ignore
+
+    @classmethod
+    def factory(cls, class_name: str, **kwargs: Any) -> Self:
+        out = super().factory(class_name, **kwargs)
+        # Store the factory args for downstream consumption
+        out._factory_kwargs = kwargs
+
+        # We initialize our overridden functions here.
+        # Note that we use the initialized object to ensure each function
+        # is attached to the instantiated object
+        # (attached to a specific web3 and contract address)
+        out._overloaded_functions = {
+            IEverlongStrategyKeeperRoleManagerContractFunction0._type_signature: IEverlongStrategyKeeperRoleManagerContractFunction0,
+        }
+        return out
+
+
 class IEverlongStrategyKeeperSetRoleManagerContractFunction0(PypechainContractFunction):
     """ContractFunction for the setRoleManager(str) method."""
 
@@ -978,6 +1219,378 @@ class IEverlongStrategyKeeperSetTriggerContractFunction(PypechainOverloadedFunct
         # (attached to a specific web3 and contract address)
         out._overloaded_functions = {
             IEverlongStrategyKeeperSetTriggerContractFunction0._type_signature: IEverlongStrategyKeeperSetTriggerContractFunction0,
+        }
+        return out
+
+
+class IEverlongStrategyKeeperShouldProcessReportContractFunction0(PypechainContractFunction):
+    """ContractFunction for the shouldProcessReport(str,str) method."""
+
+    _function_name = "shouldProcessReport"
+    _type_signature = expand_struct_type_str(tuple(["str", "str"]), structs)
+    _error_class = IEverlongStrategyKeeperContractErrors
+
+    def call(
+        self,
+        transaction: TxParams | None = None,
+        block_identifier: BlockIdentifier | None = None,
+        state_override: StateOverride | None = None,
+        ccip_read_enabled: bool | None = None,
+    ) -> bool:
+        """returns bool."""
+        # We handle the block identifier = None case here for typing.
+        if block_identifier is None:
+            block_identifier = self.w3.eth.default_block
+
+        # Define the expected return types from the smart contract call
+        return_types = bool
+
+        # Call the function
+        raw_values = self._call(transaction, block_identifier, state_override, ccip_read_enabled)
+
+        return cast(bool, rename_returned_types(structs, return_types, raw_values))
+
+
+class IEverlongStrategyKeeperShouldProcessReportContractFunction(PypechainOverloadedFunctions):
+    """ContractFunction for the shouldProcessReport method."""
+
+    # super() call methods are generic, while our version adds values & types
+    # pylint: disable=arguments-differ# disable this warning when there is overloading
+    # pylint: disable=function-redefined
+
+    _function_name = "shouldProcessReport"
+
+    # Make lookup for function signature -> overloaded function
+    # The function signatures are python types, as we need to do a
+    # lookup of arguments passed in to contract function
+    _functions: dict[str, PypechainContractFunction]
+
+    @overload
+    def __call__(self, _vault: str, _strategy: str) -> IEverlongStrategyKeeperShouldProcessReportContractFunction0:  # type: ignore
+        ...
+
+    def __call__(self, *args, **kwargs) -> IEverlongStrategyKeeperShouldProcessReportContractFunction:  # type: ignore
+        # Special case when there are no args or kwargs
+        if len(args) == 0 and len(kwargs) == 0:
+            # We need to specify the element identifier as the function call without arguments.
+            # Despite this setting the member variable `abi_element_identifier`
+            # that's shared across this object, this field gets overwritten in the
+            # clone if arguments are provided.
+            self.abi_element_identifier = self._function_name + "()"
+            clone = super().__call__()
+        else:
+            clone = super().__call__(
+                *(dataclass_to_tuple(arg) for arg in args),
+                **{key: dataclass_to_tuple(arg) for key, arg in kwargs.items()},
+            )
+
+        # Arguments is the flattened set of arguments from args and kwargs, ordered by the abi
+        # We get the python types of the args passed in, but remapped from tuples -> dataclasses
+        arg_types = get_arg_type_names(clone.arguments)
+
+        # Grab the relevant kwargs when factory was called.
+        factory_kwargs = self._factory_kwargs
+        factory_kwargs["abi_element_identifier"] = clone.abi_element_identifier
+
+        function_obj = self._overloaded_functions[arg_types].factory(self._function_name, **factory_kwargs)
+
+        function_obj.args = clone.args
+        function_obj.kwargs = clone.kwargs
+
+        # The `@overload` of `__call__` takes care of setting the type of this object correctly
+        return function_obj  # type: ignore
+
+    @classmethod
+    def factory(cls, class_name: str, **kwargs: Any) -> Self:
+        out = super().factory(class_name, **kwargs)
+        # Store the factory args for downstream consumption
+        out._factory_kwargs = kwargs
+
+        # We initialize our overridden functions here.
+        # Note that we use the initialized object to ensure each function
+        # is attached to the instantiated object
+        # (attached to a specific web3 and contract address)
+        out._overloaded_functions = {
+            IEverlongStrategyKeeperShouldProcessReportContractFunction0._type_signature: IEverlongStrategyKeeperShouldProcessReportContractFunction0,
+        }
+        return out
+
+
+class IEverlongStrategyKeeperShouldStrategyReportContractFunction0(PypechainContractFunction):
+    """ContractFunction for the shouldStrategyReport(str) method."""
+
+    _function_name = "shouldStrategyReport"
+    _type_signature = expand_struct_type_str(tuple(["str"]), structs)
+    _error_class = IEverlongStrategyKeeperContractErrors
+
+    def call(
+        self,
+        transaction: TxParams | None = None,
+        block_identifier: BlockIdentifier | None = None,
+        state_override: StateOverride | None = None,
+        ccip_read_enabled: bool | None = None,
+    ) -> bool:
+        """returns bool."""
+        # We handle the block identifier = None case here for typing.
+        if block_identifier is None:
+            block_identifier = self.w3.eth.default_block
+
+        # Define the expected return types from the smart contract call
+        return_types = bool
+
+        # Call the function
+        raw_values = self._call(transaction, block_identifier, state_override, ccip_read_enabled)
+
+        return cast(bool, rename_returned_types(structs, return_types, raw_values))
+
+
+class IEverlongStrategyKeeperShouldStrategyReportContractFunction(PypechainOverloadedFunctions):
+    """ContractFunction for the shouldStrategyReport method."""
+
+    # super() call methods are generic, while our version adds values & types
+    # pylint: disable=arguments-differ# disable this warning when there is overloading
+    # pylint: disable=function-redefined
+
+    _function_name = "shouldStrategyReport"
+
+    # Make lookup for function signature -> overloaded function
+    # The function signatures are python types, as we need to do a
+    # lookup of arguments passed in to contract function
+    _functions: dict[str, PypechainContractFunction]
+
+    @overload
+    def __call__(self, _strategy: str) -> IEverlongStrategyKeeperShouldStrategyReportContractFunction0:  # type: ignore
+        ...
+
+    def __call__(self, *args, **kwargs) -> IEverlongStrategyKeeperShouldStrategyReportContractFunction:  # type: ignore
+        # Special case when there are no args or kwargs
+        if len(args) == 0 and len(kwargs) == 0:
+            # We need to specify the element identifier as the function call without arguments.
+            # Despite this setting the member variable `abi_element_identifier`
+            # that's shared across this object, this field gets overwritten in the
+            # clone if arguments are provided.
+            self.abi_element_identifier = self._function_name + "()"
+            clone = super().__call__()
+        else:
+            clone = super().__call__(
+                *(dataclass_to_tuple(arg) for arg in args),
+                **{key: dataclass_to_tuple(arg) for key, arg in kwargs.items()},
+            )
+
+        # Arguments is the flattened set of arguments from args and kwargs, ordered by the abi
+        # We get the python types of the args passed in, but remapped from tuples -> dataclasses
+        arg_types = get_arg_type_names(clone.arguments)
+
+        # Grab the relevant kwargs when factory was called.
+        factory_kwargs = self._factory_kwargs
+        factory_kwargs["abi_element_identifier"] = clone.abi_element_identifier
+
+        function_obj = self._overloaded_functions[arg_types].factory(self._function_name, **factory_kwargs)
+
+        function_obj.args = clone.args
+        function_obj.kwargs = clone.kwargs
+
+        # The `@overload` of `__call__` takes care of setting the type of this object correctly
+        return function_obj  # type: ignore
+
+    @classmethod
+    def factory(cls, class_name: str, **kwargs: Any) -> Self:
+        out = super().factory(class_name, **kwargs)
+        # Store the factory args for downstream consumption
+        out._factory_kwargs = kwargs
+
+        # We initialize our overridden functions here.
+        # Note that we use the initialized object to ensure each function
+        # is attached to the instantiated object
+        # (attached to a specific web3 and contract address)
+        out._overloaded_functions = {
+            IEverlongStrategyKeeperShouldStrategyReportContractFunction0._type_signature: IEverlongStrategyKeeperShouldStrategyReportContractFunction0,
+        }
+        return out
+
+
+class IEverlongStrategyKeeperShouldTendContractFunction0(PypechainContractFunction):
+    """ContractFunction for the shouldTend(str) method."""
+
+    _function_name = "shouldTend"
+    _type_signature = expand_struct_type_str(tuple(["str"]), structs)
+    _error_class = IEverlongStrategyKeeperContractErrors
+
+    def call(
+        self,
+        transaction: TxParams | None = None,
+        block_identifier: BlockIdentifier | None = None,
+        state_override: StateOverride | None = None,
+        ccip_read_enabled: bool | None = None,
+    ) -> bool:
+        """returns bool."""
+        # We handle the block identifier = None case here for typing.
+        if block_identifier is None:
+            block_identifier = self.w3.eth.default_block
+
+        # Define the expected return types from the smart contract call
+        return_types = bool
+
+        # Call the function
+        raw_values = self._call(transaction, block_identifier, state_override, ccip_read_enabled)
+
+        return cast(bool, rename_returned_types(structs, return_types, raw_values))
+
+
+class IEverlongStrategyKeeperShouldTendContractFunction(PypechainOverloadedFunctions):
+    """ContractFunction for the shouldTend method."""
+
+    # super() call methods are generic, while our version adds values & types
+    # pylint: disable=arguments-differ# disable this warning when there is overloading
+    # pylint: disable=function-redefined
+
+    _function_name = "shouldTend"
+
+    # Make lookup for function signature -> overloaded function
+    # The function signatures are python types, as we need to do a
+    # lookup of arguments passed in to contract function
+    _functions: dict[str, PypechainContractFunction]
+
+    @overload
+    def __call__(self, _strategy: str) -> IEverlongStrategyKeeperShouldTendContractFunction0:  # type: ignore
+        ...
+
+    def __call__(self, *args, **kwargs) -> IEverlongStrategyKeeperShouldTendContractFunction:  # type: ignore
+        # Special case when there are no args or kwargs
+        if len(args) == 0 and len(kwargs) == 0:
+            # We need to specify the element identifier as the function call without arguments.
+            # Despite this setting the member variable `abi_element_identifier`
+            # that's shared across this object, this field gets overwritten in the
+            # clone if arguments are provided.
+            self.abi_element_identifier = self._function_name + "()"
+            clone = super().__call__()
+        else:
+            clone = super().__call__(
+                *(dataclass_to_tuple(arg) for arg in args),
+                **{key: dataclass_to_tuple(arg) for key, arg in kwargs.items()},
+            )
+
+        # Arguments is the flattened set of arguments from args and kwargs, ordered by the abi
+        # We get the python types of the args passed in, but remapped from tuples -> dataclasses
+        arg_types = get_arg_type_names(clone.arguments)
+
+        # Grab the relevant kwargs when factory was called.
+        factory_kwargs = self._factory_kwargs
+        factory_kwargs["abi_element_identifier"] = clone.abi_element_identifier
+
+        function_obj = self._overloaded_functions[arg_types].factory(self._function_name, **factory_kwargs)
+
+        function_obj.args = clone.args
+        function_obj.kwargs = clone.kwargs
+
+        # The `@overload` of `__call__` takes care of setting the type of this object correctly
+        return function_obj  # type: ignore
+
+    @classmethod
+    def factory(cls, class_name: str, **kwargs: Any) -> Self:
+        out = super().factory(class_name, **kwargs)
+        # Store the factory args for downstream consumption
+        out._factory_kwargs = kwargs
+
+        # We initialize our overridden functions here.
+        # Note that we use the initialized object to ensure each function
+        # is attached to the instantiated object
+        # (attached to a specific web3 and contract address)
+        out._overloaded_functions = {
+            IEverlongStrategyKeeperShouldTendContractFunction0._type_signature: IEverlongStrategyKeeperShouldTendContractFunction0,
+        }
+        return out
+
+
+class IEverlongStrategyKeeperShouldUpdateDebtContractFunction0(PypechainContractFunction):
+    """ContractFunction for the shouldUpdateDebt(str,str) method."""
+
+    _function_name = "shouldUpdateDebt"
+    _type_signature = expand_struct_type_str(tuple(["str", "str"]), structs)
+    _error_class = IEverlongStrategyKeeperContractErrors
+
+    def call(
+        self,
+        transaction: TxParams | None = None,
+        block_identifier: BlockIdentifier | None = None,
+        state_override: StateOverride | None = None,
+        ccip_read_enabled: bool | None = None,
+    ) -> bool:
+        """returns bool."""
+        # We handle the block identifier = None case here for typing.
+        if block_identifier is None:
+            block_identifier = self.w3.eth.default_block
+
+        # Define the expected return types from the smart contract call
+        return_types = bool
+
+        # Call the function
+        raw_values = self._call(transaction, block_identifier, state_override, ccip_read_enabled)
+
+        return cast(bool, rename_returned_types(structs, return_types, raw_values))
+
+
+class IEverlongStrategyKeeperShouldUpdateDebtContractFunction(PypechainOverloadedFunctions):
+    """ContractFunction for the shouldUpdateDebt method."""
+
+    # super() call methods are generic, while our version adds values & types
+    # pylint: disable=arguments-differ# disable this warning when there is overloading
+    # pylint: disable=function-redefined
+
+    _function_name = "shouldUpdateDebt"
+
+    # Make lookup for function signature -> overloaded function
+    # The function signatures are python types, as we need to do a
+    # lookup of arguments passed in to contract function
+    _functions: dict[str, PypechainContractFunction]
+
+    @overload
+    def __call__(self, _vault: str, _strategy: str) -> IEverlongStrategyKeeperShouldUpdateDebtContractFunction0:  # type: ignore
+        ...
+
+    def __call__(self, *args, **kwargs) -> IEverlongStrategyKeeperShouldUpdateDebtContractFunction:  # type: ignore
+        # Special case when there are no args or kwargs
+        if len(args) == 0 and len(kwargs) == 0:
+            # We need to specify the element identifier as the function call without arguments.
+            # Despite this setting the member variable `abi_element_identifier`
+            # that's shared across this object, this field gets overwritten in the
+            # clone if arguments are provided.
+            self.abi_element_identifier = self._function_name + "()"
+            clone = super().__call__()
+        else:
+            clone = super().__call__(
+                *(dataclass_to_tuple(arg) for arg in args),
+                **{key: dataclass_to_tuple(arg) for key, arg in kwargs.items()},
+            )
+
+        # Arguments is the flattened set of arguments from args and kwargs, ordered by the abi
+        # We get the python types of the args passed in, but remapped from tuples -> dataclasses
+        arg_types = get_arg_type_names(clone.arguments)
+
+        # Grab the relevant kwargs when factory was called.
+        factory_kwargs = self._factory_kwargs
+        factory_kwargs["abi_element_identifier"] = clone.abi_element_identifier
+
+        function_obj = self._overloaded_functions[arg_types].factory(self._function_name, **factory_kwargs)
+
+        function_obj.args = clone.args
+        function_obj.kwargs = clone.kwargs
+
+        # The `@overload` of `__call__` takes care of setting the type of this object correctly
+        return function_obj  # type: ignore
+
+    @classmethod
+    def factory(cls, class_name: str, **kwargs: Any) -> Self:
+        out = super().factory(class_name, **kwargs)
+        # Store the factory args for downstream consumption
+        out._factory_kwargs = kwargs
+
+        # We initialize our overridden functions here.
+        # Note that we use the initialized object to ensure each function
+        # is attached to the instantiated object
+        # (attached to a specific web3 and contract address)
+        out._overloaded_functions = {
+            IEverlongStrategyKeeperShouldUpdateDebtContractFunction0._type_signature: IEverlongStrategyKeeperShouldUpdateDebtContractFunction0,
         }
         return out
 
@@ -1246,6 +1859,99 @@ class IEverlongStrategyKeeperTransferOwnershipContractFunction(PypechainOverload
         return out
 
 
+class IEverlongStrategyKeeperTriggerContractFunction0(PypechainContractFunction):
+    """ContractFunction for the trigger() method."""
+
+    _function_name = "trigger"
+    _type_signature = expand_struct_type_str(tuple([]), structs)
+    _error_class = IEverlongStrategyKeeperContractErrors
+
+    def call(
+        self,
+        transaction: TxParams | None = None,
+        block_identifier: BlockIdentifier | None = None,
+        state_override: StateOverride | None = None,
+        ccip_read_enabled: bool | None = None,
+    ) -> str:
+        """returns str."""
+        # We handle the block identifier = None case here for typing.
+        if block_identifier is None:
+            block_identifier = self.w3.eth.default_block
+
+        # Define the expected return types from the smart contract call
+        return_types = str
+
+        # Call the function
+        raw_values = self._call(transaction, block_identifier, state_override, ccip_read_enabled)
+
+        return cast(str, rename_returned_types(structs, return_types, raw_values))
+
+
+class IEverlongStrategyKeeperTriggerContractFunction(PypechainOverloadedFunctions):
+    """ContractFunction for the trigger method."""
+
+    # super() call methods are generic, while our version adds values & types
+    # pylint: disable=arguments-differ# disable this warning when there is overloading
+    # pylint: disable=function-redefined
+
+    _function_name = "trigger"
+
+    # Make lookup for function signature -> overloaded function
+    # The function signatures are python types, as we need to do a
+    # lookup of arguments passed in to contract function
+    _functions: dict[str, PypechainContractFunction]
+
+    @overload
+    def __call__(self) -> IEverlongStrategyKeeperTriggerContractFunction0:  # type: ignore
+        ...
+
+    def __call__(self, *args, **kwargs) -> IEverlongStrategyKeeperTriggerContractFunction:  # type: ignore
+        # Special case when there are no args or kwargs
+        if len(args) == 0 and len(kwargs) == 0:
+            # We need to specify the element identifier as the function call without arguments.
+            # Despite this setting the member variable `abi_element_identifier`
+            # that's shared across this object, this field gets overwritten in the
+            # clone if arguments are provided.
+            self.abi_element_identifier = self._function_name + "()"
+            clone = super().__call__()
+        else:
+            clone = super().__call__(
+                *(dataclass_to_tuple(arg) for arg in args),
+                **{key: dataclass_to_tuple(arg) for key, arg in kwargs.items()},
+            )
+
+        # Arguments is the flattened set of arguments from args and kwargs, ordered by the abi
+        # We get the python types of the args passed in, but remapped from tuples -> dataclasses
+        arg_types = get_arg_type_names(clone.arguments)
+
+        # Grab the relevant kwargs when factory was called.
+        factory_kwargs = self._factory_kwargs
+        factory_kwargs["abi_element_identifier"] = clone.abi_element_identifier
+
+        function_obj = self._overloaded_functions[arg_types].factory(self._function_name, **factory_kwargs)
+
+        function_obj.args = clone.args
+        function_obj.kwargs = clone.kwargs
+
+        # The `@overload` of `__call__` takes care of setting the type of this object correctly
+        return function_obj  # type: ignore
+
+    @classmethod
+    def factory(cls, class_name: str, **kwargs: Any) -> Self:
+        out = super().factory(class_name, **kwargs)
+        # Store the factory args for downstream consumption
+        out._factory_kwargs = kwargs
+
+        # We initialize our overridden functions here.
+        # Note that we use the initialized object to ensure each function
+        # is attached to the instantiated object
+        # (attached to a specific web3 and contract address)
+        out._overloaded_functions = {
+            IEverlongStrategyKeeperTriggerContractFunction0._type_signature: IEverlongStrategyKeeperTriggerContractFunction0,
+        }
+        return out
+
+
 class IEverlongStrategyKeeperUpdate_debtContractFunction0(PypechainContractFunction):
     """ContractFunction for the update_debt(str,str) method."""
 
@@ -1436,21 +2142,35 @@ class IEverlongStrategyKeeperContractFunctions(ContractFunctions):
 
     kind: IEverlongStrategyKeeperKindContractFunction
 
+    name: IEverlongStrategyKeeperNameContractFunction
+
     owner: IEverlongStrategyKeeperOwnerContractFunction
 
     processReport: IEverlongStrategyKeeperProcessReportContractFunction
 
     renounceOwnership: IEverlongStrategyKeeperRenounceOwnershipContractFunction
 
+    roleManager: IEverlongStrategyKeeperRoleManagerContractFunction
+
     setRoleManager: IEverlongStrategyKeeperSetRoleManagerContractFunction
 
     setTrigger: IEverlongStrategyKeeperSetTriggerContractFunction
+
+    shouldProcessReport: IEverlongStrategyKeeperShouldProcessReportContractFunction
+
+    shouldStrategyReport: IEverlongStrategyKeeperShouldStrategyReportContractFunction
+
+    shouldTend: IEverlongStrategyKeeperShouldTendContractFunction
+
+    shouldUpdateDebt: IEverlongStrategyKeeperShouldUpdateDebtContractFunction
 
     strategyReport: IEverlongStrategyKeeperStrategyReportContractFunction
 
     tend: IEverlongStrategyKeeperTendContractFunction
 
     transferOwnership: IEverlongStrategyKeeperTransferOwnershipContractFunction
+
+    trigger: IEverlongStrategyKeeperTriggerContractFunction
 
     update_debt: IEverlongStrategyKeeperUpdate_debtContractFunction
 
@@ -1488,6 +2208,14 @@ class IEverlongStrategyKeeperContractFunctions(ContractFunctions):
             decode_tuples=decode_tuples,
             abi_element_identifier="kind",
         )
+        self.name = IEverlongStrategyKeeperNameContractFunction.factory(
+            "name",
+            w3=w3,
+            contract_abi=abi,
+            address=address,
+            decode_tuples=decode_tuples,
+            abi_element_identifier="name",
+        )
         self.owner = IEverlongStrategyKeeperOwnerContractFunction.factory(
             "owner",
             w3=w3,
@@ -1512,6 +2240,14 @@ class IEverlongStrategyKeeperContractFunctions(ContractFunctions):
             decode_tuples=decode_tuples,
             abi_element_identifier="renounceOwnership",
         )
+        self.roleManager = IEverlongStrategyKeeperRoleManagerContractFunction.factory(
+            "roleManager",
+            w3=w3,
+            contract_abi=abi,
+            address=address,
+            decode_tuples=decode_tuples,
+            abi_element_identifier="roleManager",
+        )
         self.setRoleManager = IEverlongStrategyKeeperSetRoleManagerContractFunction.factory(
             "setRoleManager",
             w3=w3,
@@ -1527,6 +2263,38 @@ class IEverlongStrategyKeeperContractFunctions(ContractFunctions):
             address=address,
             decode_tuples=decode_tuples,
             abi_element_identifier="setTrigger",
+        )
+        self.shouldProcessReport = IEverlongStrategyKeeperShouldProcessReportContractFunction.factory(
+            "shouldProcessReport",
+            w3=w3,
+            contract_abi=abi,
+            address=address,
+            decode_tuples=decode_tuples,
+            abi_element_identifier="shouldProcessReport",
+        )
+        self.shouldStrategyReport = IEverlongStrategyKeeperShouldStrategyReportContractFunction.factory(
+            "shouldStrategyReport",
+            w3=w3,
+            contract_abi=abi,
+            address=address,
+            decode_tuples=decode_tuples,
+            abi_element_identifier="shouldStrategyReport",
+        )
+        self.shouldTend = IEverlongStrategyKeeperShouldTendContractFunction.factory(
+            "shouldTend",
+            w3=w3,
+            contract_abi=abi,
+            address=address,
+            decode_tuples=decode_tuples,
+            abi_element_identifier="shouldTend",
+        )
+        self.shouldUpdateDebt = IEverlongStrategyKeeperShouldUpdateDebtContractFunction.factory(
+            "shouldUpdateDebt",
+            w3=w3,
+            contract_abi=abi,
+            address=address,
+            decode_tuples=decode_tuples,
+            abi_element_identifier="shouldUpdateDebt",
         )
         self.strategyReport = IEverlongStrategyKeeperStrategyReportContractFunction.factory(
             "strategyReport",
@@ -1551,6 +2319,14 @@ class IEverlongStrategyKeeperContractFunctions(ContractFunctions):
             address=address,
             decode_tuples=decode_tuples,
             abi_element_identifier="transferOwnership",
+        )
+        self.trigger = IEverlongStrategyKeeperTriggerContractFunction.factory(
+            "trigger",
+            w3=w3,
+            contract_abi=abi,
+            address=address,
+            decode_tuples=decode_tuples,
+            abi_element_identifier="trigger",
         )
         self.update_debt = IEverlongStrategyKeeperUpdate_debtContractFunction.factory(
             "update_debt",

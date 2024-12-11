@@ -9,3 +9,4 @@ See documentation at https://github.com/delvtech/pypechain """
 
 
 from .IRoleManagerFactoryContract import IRoleManagerFactoryContract
+from .IRoleManagerFactoryTypes import Project

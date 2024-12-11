@@ -12,7 +12,7 @@ from .IAccountant import IAccountantContract
 from .IAprOracle import IAprOracleContract
 from .IEverlongEvents import IEverlongEventsContract
 from .IEverlongStrategy import IEverlongStrategyContract
-from .IEverlongStrategyFactory import IEverlongStrategyFactoryContract
 from .IEverlongStrategyKeeper import IEverlongStrategyKeeperContract
+from .IPermissionedStrategy import IPermissionedStrategyContract
 from .IRoleManager import IRoleManagerContract
 from .IRoleManagerFactory import IRoleManagerFactoryContract

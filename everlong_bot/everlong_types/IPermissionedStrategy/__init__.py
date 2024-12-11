@@ -8,17 +8,13 @@ See documentation at https://github.com/delvtech/pypechain """
 # pylint: disable=invalid-name
 
 
-from .IEverlongStrategyContract import IEverlongStrategyContract
-from .IEverlongStrategyTypes import (
+from .IPermissionedStrategyContract import IPermissionedStrategyContract
+from .IPermissionedStrategyTypes import (
     ApprovalEvent,
     DepositEvent,
-    EverlongPosition,
     NewTokenizedStrategyEvent,
-    PositionClosedEvent,
-    PositionOpenedEvent,
     ReportedEvent,
     StrategyShutdownEvent,
-    TendConfig,
     TransferEvent,
     UpdateEmergencyAdminEvent,
     UpdateKeeperEvent,
