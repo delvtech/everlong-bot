@@ -18,7 +18,9 @@ classifiers = [
 ]
 
 dependencies = [
-    "agent0>=0.26.0",
+    # TODO release agent0 and use direct import. For now,
+    # we do local editable install.
+    # "agent0>=0.26.0",
     "pypechain>=0.0.49",
 ]
 
