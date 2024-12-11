@@ -6,7 +6,6 @@ import argparse
 import logging
 import os
 import sys
-import time
 from typing import NamedTuple, Sequence
 
 from agent0 import LocalChain, LocalHyperdrive
@@ -15,11 +14,17 @@ from agent0.hyperlogs.rollbar_utilities import initialize_rollbar, log_rollbar_e
 from eth_account.account import Account
 from eth_account.signers.local import LocalAccount
 from fixedpointmath import FixedPoint
-from pypechain.core import FailedTransaction, PypechainCallException
+from pypechain.core import PypechainCallException
+from web3 import Web3
 from web3.exceptions import ContractCustomError
 
 from everlong_bot.everlong_types import IEverlongStrategyKeeperContract
 from everlong_bot.keeper_bot import execute_keeper_call_on_vaults
+
+MAINNET_WHALE_ADDRESSES = {
+    # DAI
+    "0x6B175474E89094C44Da98b954EedeAC495271d0F": "0xf6e72Db5454dd049d0788e411b06CfAF16853042",
+}
 
 
 def _fuzz_ignore_errors(exc: Exception) -> bool:
@@ -115,7 +120,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     if private_key is None:
         raise ValueError("KEEPER_BOT_KEY is not set")
 
-    sender: LocalAccount = Account().from_key(private_key)
+    keeper_account: LocalAccount = Account().from_key(private_key)
 
     keeper_contract = IEverlongStrategyKeeperContract.factory(w3=chain._web3)(
         chain._web3.to_checksum_address(keeper_contract_address)
@@ -124,29 +129,40 @@ def main(argv: Sequence[str] | None = None) -> None:
     # Set up fuzzing environment
     hyperdrive_pool = LocalHyperdrive(chain, hyperdrive_address=hyperdrive_address, deploy=False)
 
-    while True:
-        logging.info("Checking for running keeper...")
+    # Ensure all whale account addresses are checksum addresses
+    # TODO abstract this out to run_fuzz_bots
+    whale_accounts = {
+        Web3.to_checksum_address(key): Web3.to_checksum_address(value) for key, value in MAINNET_WHALE_ADDRESSES.items()
+    }
 
-        run_fuzz_bots(
+    agents = None
+
+    while True:
+        logging.info("Running fuzz bots...")
+
+        agents = run_fuzz_bots(
             chain,
             hyperdrive_pools=[hyperdrive_pool],
+            # We pass in the same agents when running fuzzing
+            agents=agents,
             check_invariance=True,
             raise_error_on_failed_invariance_checks=True,
             raise_error_on_crash=True,
             log_to_rollbar=log_to_rollbar,
             ignore_raise_error_func=_fuzz_ignore_errors,
             random_advance_time=False,  # We take care of advancing time in the outer loop
-            lp_share_price_test=True,
-            base_budget_per_bot=FixedPoint(1_000),
-            num_iterations=10,
+            lp_share_price_test=False,
+            base_budget_per_bot=FixedPoint(1_000_000),
+            whale_accounts=whale_accounts,
+            num_iterations=5,
             # Never refund agents
             minimum_avg_agent_base=FixedPoint(-1),
         )
 
-        # TODO Random deposit and/or withdrawal
+        # TODO Random vault deposit and/or withdrawal
 
         # Execute keeper call
-        execute_keeper_call_on_vaults(chain, sender, keeper_contract)
+        execute_keeper_call_on_vaults(chain, keeper_account, keeper_contract)
 
         # TODO check vault invariance
 
