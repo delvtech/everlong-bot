@@ -1,2 +1,0 @@
--e ../agent0[all]
-pypechain

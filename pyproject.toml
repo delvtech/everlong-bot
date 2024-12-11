@@ -1,0 +1,106 @@
+[project]
+name = "everlong-bot"
+version = "0.0.0"
+# Authors are the current, primary stewards of the repo
+# contributors can be found on github
+authors = [
+    { name = "Sheng Lundquist", email = "sheng@delv.tech" },
+]
+description = "Bot and fuzzing for everlong."
+readme = "README.md"
+requires-python = ">=3.10, <=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Natural Language :: English",
+]
+
+dependencies = [
+    "agent0>=0.26.0",
+    "pypechain>=0.0.49",
+]
+
+
+[project.optional-dependencies]
+dev = [
+    "black==24.*",
+    "isort",
+    "pylint>=3.3.0",
+    "pyright",
+    "pytest",
+]
+
+all = [
+    "everlong-bot[dev]",
+]
+
+[build-system]
+requires = ["flit_core>=3.2"]
+build-backend = "flit_core.buildapi"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = ["--tb=short"]
+norecursedirs = ".git"
+python_files = "*_test.py test_*.py"
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "\n%(asctime)s: %(levelname)s: %(filename)s:%(lineno)s::%(module)s::%(funcName)s:\n%(message)s"
+log_cli_date_format = "%y-%m-%d %H:%M:%S"
+
+[tool.pylint.format]
+max-line-length = "120"
+
+[tool.black]
+line-length = 120
+extend-exclude = "\\.ipynb"
+
+[tool.pylint]
+exclude = [".venv", ".vscode", "docs"]
+
+[tool.pylance]
+exclude = [".venv", ".vscode", "docs"]
+
+[tool.pyright]
+exclude = [".venv", ".vscode", "docs"]
+
+[tool.isort]
+line_length = 120
+profile = "black"
+
+[tool.ruff]
+line-length = 120
+
+# Assume Python 3.10.
+target-version = "py310"
+
+exclude = [
+    ".venv",
+    ".vscode",
+    "docs",
+    "lib"
+]
+
+[tool.ruff.lint]
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["A", "D", "I", "N", "PL"]
+unfixable = []
+
+# We ignore the following rules:
+# D203: 1 blank line required before class docstring (incompatible with D211: no blank lines before class docstring)
+# D213: multi-line-summary-second-line (incompatible with D212: multi-line summary should start at the first line)
+# D413: blank-line-after-last-section (not part of Numpy style guide)
+# D415: First line should end with a period, question mark, or exclamation point (in period-only D400)
+# D416: section-name-ends-in-colon (numpy style guide doesn't use colons after sections, i.e. Parameters)
+ignore = ["D203", "D213", "D413", "D415", "D416"]
+
+# Default is: pycodestyle (E) and Pyflakes (F)
+# We add flake8-builtins (A), pydocstyle (D), isort (I), pep8-naming (N), and pylint (PL).
+# We remove pycodestyle (E) since it throws erroneous line too long errors.
+# We remove Pyflakes (F) since it complains about `import *` which we need.
+select = ["A", "D", "I", "N", "PL"]
