@@ -15,7 +15,7 @@ from eth_account.account import Account
 from eth_account.signers.local import LocalAccount
 
 from everlong_bot.everlong_types import IEverlongStrategyKeeperContract
-from everlong_bot.keeper_bot import execute_keeper_calls
+from everlong_bot.keeper_bot import execute_keeper_call_on_vaults
 
 
 def main(argv: Sequence[str] | None = None) -> None:
@@ -64,7 +64,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     while True:
         logging.info("Checking for running keeper...")
 
-        execute_keeper_calls(chain, sender, keeper_contract)
+        execute_keeper_call_on_vaults(chain, sender, keeper_contract)
 
         time.sleep(3600)
 
