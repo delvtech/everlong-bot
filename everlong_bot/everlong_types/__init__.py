@@ -16,3 +16,4 @@ from .IEverlongStrategyKeeper import IEverlongStrategyKeeperContract
 from .IPermissionedStrategy import IPermissionedStrategyContract
 from .IRoleManager import IRoleManagerContract
 from .IRoleManagerFactory import IRoleManagerFactoryContract
+from .IVault import IVaultContract
