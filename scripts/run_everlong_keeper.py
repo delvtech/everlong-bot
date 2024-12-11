@@ -66,7 +66,7 @@ def main(argv: Sequence[str] | None = None) -> None:
 
         execute_keeper_call_on_vaults(chain, sender, keeper_contract)
 
-        time.sleep(3600)
+        time.sleep(parsed_args.check_period)
 
 
 class Args(NamedTuple):
@@ -129,12 +129,10 @@ if __name__ == "__main__":
         # pylint: disable=invalid-name
         _rpc_uri = os.getenv("RPC_URI", None)
         if _rpc_uri is None:
-            _log_prefix = "Uncaught Critical Error in Checkpoint Bot:"
+            _log_prefix = "Uncaught Critical Error in Everlong Bot:"
         else:
             _chain_name = _rpc_uri.split("//")[-1].split("/")[0]
-            _log_prefix = (
-                f"Uncaught Critical Error for {_chain_name} in Checkpoint Bot:"
-            )
+            _log_prefix = f"Uncaught Critical Error for {_chain_name} in Everlong Bot:"
         log_rollbar_exception(
             exception=exc, log_level=logging.CRITICAL, rollbar_log_prefix=_log_prefix
         )
