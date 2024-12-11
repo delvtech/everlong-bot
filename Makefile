@@ -10,4 +10,4 @@ build-types:
 	../everlong/out/IPermissionedStrategy.sol/ \
 	../everlong/out/IRoleManager.sol/ \
 	../everlong/out/IRoleManagerFactory.sol/ \
-	../everlong/out/IVault.sol/
+	../everlong/out/IVault.sol/ \
