@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+import random
 import sys
 from typing import NamedTuple, Sequence
 
@@ -18,12 +19,14 @@ from pypechain.core import PypechainCallException
 from web3 import Web3
 from web3.exceptions import ContractCustomError
 
-from everlong_bot.everlong_types import IEverlongStrategyKeeperContract
-from everlong_bot.keeper_bot import execute_keeper_call_on_vaults
+from everlong_bot.everlong_types import IEverlongStrategyKeeperContract, IVaultContract
+from everlong_bot.keeper_bot import execute_keeper_call_on_vaults, get_all_vaults_from_keeper
+
+DAI_ADDRESS = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
 
 MAINNET_WHALE_ADDRESSES = {
     # DAI
-    "0x6B175474E89094C44Da98b954EedeAC495271d0F": "0xf6e72Db5454dd049d0788e411b06CfAF16853042",
+    DAI_ADDRESS: "0xf6e72Db5454dd049d0788e411b06CfAF16853042",
 }
 
 
@@ -126,6 +129,8 @@ def main(argv: Sequence[str] | None = None) -> None:
         chain._web3.to_checksum_address(keeper_contract_address)
     )
 
+    vaults = get_all_vaults_from_keeper(chain, keeper_contract)
+
     # Set up fuzzing environment
     hyperdrive_pool = LocalHyperdrive(chain, hyperdrive_address=hyperdrive_address, deploy=False)
 
@@ -135,7 +140,11 @@ def main(argv: Sequence[str] | None = None) -> None:
         Web3.to_checksum_address(key): Web3.to_checksum_address(value) for key, value in MAINNET_WHALE_ADDRESSES.items()
     }
 
+    base_token_contract = hyperdrive_pool.interface.base_token_contract
+
     agents = None
+
+    assert chain.config.rng is not None
 
     while True:
         logging.info("Running fuzz bots...")
@@ -154,12 +163,45 @@ def main(argv: Sequence[str] | None = None) -> None:
             lp_share_price_test=False,
             base_budget_per_bot=FixedPoint(1_000_000),
             whale_accounts=whale_accounts,
-            num_iterations=5,
+            num_iterations=1,
             # Never refund agents
             minimum_avg_agent_base=FixedPoint(-1),
         )
 
-        # TODO Random vault deposit and/or withdrawal
+        # Random vault deposit and/or withdrawal
+        for agent in agents:
+            # Pick a vault at random
+            # numpy rng has type issues with lists
+            vault: IVaultContract = chain.config.rng.choice(vaults)  # type: ignore
+            # Type narrowing
+            assert isinstance(vault, IVaultContract)
+
+            # Deposit or withdraw
+            trade = chain.config.rng.choice(["deposit", "redeem"])  # type: ignore
+            match trade:
+                case "deposit":
+                    balance = base_token_contract.functions.balanceOf(agent.address).call()
+                    if balance > 0:
+                        # TODO can't use numpy rng since it doesn't support uint256.
+                        # Need to use the state from the chain config to use the same rng object.
+                        amount = random.randint(0, balance)
+                        logging.info(f"Agent {agent.address} is depositing {amount} to {vault.address}")
+                        # Approve amount to vault
+                        base_token_contract.functions.approve(
+                            spender=vault.address, amount=amount
+                        ).sign_transact_and_wait(account=agent.account, validate_transaction=True)
+                        # Deposit amount to vault
+                        vault.functions.deposit(assets=amount, receiver=agent.address).sign_transact_and_wait(
+                            account=agent.account, validate_transaction=True
+                        )
+                case "redeem":
+                    balance = vault.functions.balanceOf(agent.address).call()
+                    if balance > 0:
+                        amount = random.randint(0, balance)
+                        logging.info(f"Agent {agent.address} is redeeming {amount} from {vault.address}")
+                        vault.functions.redeem(
+                            shares=amount, receiver=agent.address, owner=agent.address
+                        ).sign_transact_and_wait(account=agent.account, validate_transaction=True)
 
         # Execute keeper call
         execute_keeper_call_on_vaults(chain, keeper_account, keeper_contract)
