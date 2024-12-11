@@ -10,13 +10,11 @@ import time
 from typing import NamedTuple, Sequence
 
 from agent0 import Chain
-from agent0.hyperlogs.rollbar_utilities import (initialize_rollbar,
-                                                log_rollbar_exception)
+from agent0.hyperlogs.rollbar_utilities import initialize_rollbar, log_rollbar_exception
 from eth_account.account import Account
 from eth_account.signers.local import LocalAccount
 
-from everlong_bot.everlong_types.IEverlongStrategyKeeper import \
-    IEverlongStrategyKeeperContract
+from everlong_bot.everlong_types import IEverlongStrategyKeeperContract
 from everlong_bot.keeper_bot import execute_keeper_calls
 
 
@@ -59,15 +57,16 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     sender: LocalAccount = Account().from_key(private_key)
 
-    keeper_contract = IEverlongStrategyKeeperContract.factory(w3=chain._web3)(chain._web3.to_checksum_address(keeper_contract_address))
+    keeper_contract = IEverlongStrategyKeeperContract.factory(w3=chain._web3)(
+        chain._web3.to_checksum_address(keeper_contract_address)
+    )
 
     while True:
         logging.info("Checking for running keeper...")
 
-        execute_keeper_calls(sender, keeper_contract)
+        execute_keeper_calls(chain, sender, keeper_contract)
 
         time.sleep(3600)
-
 
 
 class Args(NamedTuple):
@@ -133,6 +132,10 @@ if __name__ == "__main__":
             _log_prefix = "Uncaught Critical Error in Checkpoint Bot:"
         else:
             _chain_name = _rpc_uri.split("//")[-1].split("/")[0]
-            _log_prefix = f"Uncaught Critical Error for {_chain_name} in Checkpoint Bot:"
-        log_rollbar_exception(exception=exc, log_level=logging.CRITICAL, rollbar_log_prefix=_log_prefix)
+            _log_prefix = (
+                f"Uncaught Critical Error for {_chain_name} in Checkpoint Bot:"
+            )
+        log_rollbar_exception(
+            exception=exc, log_level=logging.CRITICAL, rollbar_log_prefix=_log_prefix
+        )
         raise exc
