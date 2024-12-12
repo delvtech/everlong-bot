@@ -19,6 +19,7 @@ from pypechain.core import PypechainCallException
 from web3 import Web3
 from web3.exceptions import ContractCustomError
 
+from everlong_bot.deploy_everlong import deploy_everlong
 from everlong_bot.everlong_types import IEverlongStrategyKeeperContract, IVaultContract
 from everlong_bot.keeper_bot import execute_keeper_call_on_vaults, get_all_vaults_from_keeper
 
@@ -99,27 +100,26 @@ def main(argv: Sequence[str] | None = None) -> None:
     keeper_contract_address = None
     # TODO Abstract this method out for infra scripts
     # Get the rpc uri from env variable
-    rpc_uri = os.getenv("RPC_URI", None)
+    rpc_uri = os.getenv("MAINNET_RPC_URI", None)
     if rpc_uri is None:
-        raise ValueError("RPC_URI is not set")
+        raise ValueError("MAINNET_RPC_URI is not set")
 
     # We match the chain id of mainnet to do use the earliest block lookup, since
     # the chain is originally a fork of mainnet.
-    chain = LocalChain(fork_uri=rpc_uri, config=LocalChain.Config(chain_id=1))
+    chain = LocalChain(fork_uri=rpc_uri, config=LocalChain.Config(chain_id=1, verbose=True))
 
     hyperdrive_address = os.getenv("HYPERDRIVE_ADDRESS", None)
     if hyperdrive_address is None:
         raise ValueError("HYPERDRIVE_ADDRESS is not set")
+
+    deploy_everlong(chain, hyperdrive_address=hyperdrive_address)
 
     # Get the registry address from environment variable
     keeper_contract_address = os.getenv("KEEPER_CONTRACT_ADDRESS", None)
     if keeper_contract_address is None:
         raise ValueError("KEEPER_CONTRACT_ADDRESS is not set")
 
-    # Look for `CHECKPOINT_BOT_KEY` env variable
-    # If it exists, use the existing key and assume it's funded
-    # If it doesn't exist, create a new key and fund it (assuming this is a local anvil chain)
-    private_key = os.getenv("KEEPER_BOT_KEY", None)
+    private_key = os.getenv("KEEPER_PRIVATE_KEY", None)
     if private_key is None:
         raise ValueError("KEEPER_BOT_KEY is not set")
 
