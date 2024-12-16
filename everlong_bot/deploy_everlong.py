@@ -2,10 +2,16 @@ import os
 import shutil
 import subprocess
 
+import toml
 from agent0 import LocalChain
 
 
-def deploy_everlong(chain: LocalChain, hyperdrive_address: str, clean_dirs=True) -> None:
+def deploy_everlong(
+    chain: LocalChain,
+    hyperdrive_address: str,
+    clean_dirs: bool = True,
+    num_vaults: int = 2,
+) -> str:
     rpc_uri = chain.rpc_uri
     everlong_path = os.getenv("EVERLONG_PATH", None)
 
@@ -63,7 +69,7 @@ def deploy_everlong(chain: LocalChain, hyperdrive_address: str, clean_dirs=True)
         raise Exception(out.stderr.decode("utf-8"))
 
     # Deploy 2 everlong strategies and vaults
-    for i in range(2):
+    for i in range(num_vaults):
         cmd = (
             "source .env && "
             f"cd {everlong_path} && "
@@ -83,14 +89,14 @@ def deploy_everlong(chain: LocalChain, hyperdrive_address: str, clean_dirs=True)
         if out.returncode != 0:
             raise Exception(out.stderr.decode("utf-8"))
 
-    for i in range(2):
+    for i in range(num_vaults):
         cmd = (
             "source .env && "
             f"cd {everlong_path} && "
             f"STRATEGY_NAME='everlong_strategy_{i}' "
             f"NAME='vault_{i}' "
-            f"SYMBOL='{'V' * i}' "
-            "CATEGORY=0 "
+            f"SYMBOL='{'V' * (i+1)}' "
+            f"CATEGORY={i} "
             "forge script "
             "script/DeployVault.s.sol "
             f"--rpc-url {rpc_uri} "
@@ -105,4 +111,8 @@ def deploy_everlong(chain: LocalChain, hyperdrive_address: str, clean_dirs=True)
         if out.returncode != 0:
             raise Exception(out.stderr.decode("utf-8"))
 
-    pass
+    keeper_artifact_file = f"{everlong_path}/deploy/1/keeperContracts/EVERLONG_STRATEGY_KEEPER.toml"
+
+    keeper_artifact = toml.load(keeper_artifact_file)
+
+    return keeper_artifact["keeperContract"]

@@ -106,22 +106,17 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     # We match the chain id of mainnet to do use the earliest block lookup, since
     # the chain is originally a fork of mainnet.
-    chain = LocalChain(fork_uri=rpc_uri, config=LocalChain.Config(chain_id=1, verbose=True))
+    chain = LocalChain(fork_uri=rpc_uri, config=LocalChain.Config(chain_id=1))
 
     hyperdrive_address = os.getenv("HYPERDRIVE_ADDRESS", None)
     if hyperdrive_address is None:
         raise ValueError("HYPERDRIVE_ADDRESS is not set")
 
-    deploy_everlong(chain, hyperdrive_address=hyperdrive_address)
-
-    # Get the registry address from environment variable
-    keeper_contract_address = os.getenv("KEEPER_CONTRACT_ADDRESS", None)
-    if keeper_contract_address is None:
-        raise ValueError("KEEPER_CONTRACT_ADDRESS is not set")
+    keeper_contract_address = deploy_everlong(chain, hyperdrive_address=hyperdrive_address, num_vaults=2)
 
     private_key = os.getenv("KEEPER_PRIVATE_KEY", None)
     if private_key is None:
-        raise ValueError("KEEPER_BOT_KEY is not set")
+        raise ValueError("KEEPER_PRIVATE_KEY is not set")
 
     keeper_account: LocalAccount = Account().from_key(private_key)
 

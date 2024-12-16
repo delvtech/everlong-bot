@@ -22,6 +22,7 @@ dependencies = [
     # we do local editable install.
     # "agent0>=0.26.0",
     "pypechain>=0.0.49",
+    "toml",
 ]
 
 
