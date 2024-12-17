@@ -30,7 +30,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from pypechain.core import BaseEvent, BaseEventArgs
+from pypechain.core import BaseEvent, BaseEventArgs, ErrorInfo
 
 
 @dataclass(kw_only=True)
@@ -314,3 +314,11 @@ class EverlongPosition:
 
     maturityTime: int
     bondAmount: int
+
+
+AssetNotWrappedError = ErrorInfo(
+    inputs=[],
+    name="AssetNotWrapped",
+    selector="0x02af1e0f",
+    signature="AssetNotWrapped()",
+)
