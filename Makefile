@@ -1,13 +1,21 @@
-.PHONY: build-types
+include .env
+.PHONY: all build-types build-everlong
+
+all:
+	make build-everlong
+	make build-types
+
+build-everlong:
+	cd ${EVERLONG_PATH} && make
 
 build-types:
 	pypechain --output-dir everlong_bot/everlong_types \
-	../everlong/out/IAccountant.sol/ \
-	../everlong/out/IAprOracle.sol/ \
-	../everlong/out/IEverlongEvents.sol/ \
-	../everlong/out/IEverlongStrategy.sol/ \
-	../everlong/out/IEverlongStrategyKeeper.sol/ \
-	../everlong/out/IPermissionedStrategy.sol/ \
-	../everlong/out/IRoleManager.sol/ \
-	../everlong/out/IRoleManagerFactory.sol/ \
-	../everlong/out/IVault.sol/ \
+	${EVERLONG_PATH}/out/IAccountant.sol/ \
+	${EVERLONG_PATH}/out/IAprOracle.sol/ \
+	${EVERLONG_PATH}/out/IEverlongEvents.sol/ \
+	${EVERLONG_PATH}/out/IEverlongStrategy.sol/ \
+	${EVERLONG_PATH}/out/IEverlongStrategyKeeper.sol/ \
+	${EVERLONG_PATH}/out/IPermissionedStrategy.sol/ \
+	${EVERLONG_PATH}/out/IRoleManager.sol/ \
+	${EVERLONG_PATH}/out/IRoleManagerFactory.sol/ \
+	${EVERLONG_PATH}/out/IVault.sol/ \
