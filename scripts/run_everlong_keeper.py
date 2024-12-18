@@ -1,4 +1,8 @@
-"""Bots for running everlong keepers in production."""
+"""Bots for running everlong keepers in production.
+
+This script connects to a remote chain and runs various calls needed
+by the everlong vault for maintenance.
+"""
 
 from __future__ import annotations
 
@@ -30,37 +34,37 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     parsed_args = parse_arguments(argv)
 
+    # Set up rollbar
+    # TODO log additional crashes
     rollbar_environment_name = "everlong_bot"
     log_to_rollbar = initialize_rollbar(rollbar_environment_name)
 
-    # Initialize
-    keeper_contract_address = None
-    # TODO Abstract this method out for infra scripts
-    # Get the rpc uri from env variable
-    rpc_uri = os.getenv("RPC_URI", None)
+    # Get env variables
+    rpc_uri = os.getenv("MAINNET_RPC_URI", None)
     if rpc_uri is None:
-        raise ValueError("RPC_URI is not set")
+        raise ValueError("MAINNET_RPC_URI is not set")
 
-    chain = Chain(rpc_uri, Chain.Config(no_postgres=True))
-
-    # Get the registry address from environment variable
     keeper_contract_address = os.getenv("KEEPER_CONTRACT_ADDRESS", None)
     if keeper_contract_address is None:
         raise ValueError("KEEPER_CONTRACT_ADDRESS is not set")
 
-    # Look for `CHECKPOINT_BOT_KEY` env variable
-    # If it exists, use the existing key and assume it's funded
-    # If it doesn't exist, create a new key and fund it (assuming this is a local anvil chain)
-    private_key = os.getenv("KEEPER_BOT_KEY", None)
+    private_key = os.getenv("KEEPER_PRIVATE_KEY", None)
     if private_key is None:
-        raise ValueError("KEEPER_BOT_KEY is not set")
+        raise ValueError("KEEPER_PRIVATE_KEY is not set")
 
+    # Set up objects
+    # Get chain
+    chain = Chain(rpc_uri, Chain.Config(no_postgres=True))
+
+    # Set up keeper account
     sender: LocalAccount = Account().from_key(private_key)
 
+    # Set up keeper contract pypechain object
     keeper_contract = IEverlongStrategyKeeperContract.factory(w3=chain._web3)(
         chain._web3.to_checksum_address(keeper_contract_address)
     )
 
+    # Run keeper bot periodically
     while True:
         logging.info("Checking for running keeper...")
 
@@ -120,7 +124,7 @@ def parse_arguments(argv: Sequence[str] | None = None) -> Args:
     return namespace_to_args(parser.parse_args())
 
 
-# Run the checkpoint bot.
+# Run the everlong keeper bot.
 if __name__ == "__main__":
     # Wrap everything in a try catch to log any non-caught critical errors and log to rollbar
     try:
@@ -133,7 +137,5 @@ if __name__ == "__main__":
         else:
             _chain_name = _rpc_uri.split("//")[-1].split("/")[0]
             _log_prefix = f"Uncaught Critical Error for {_chain_name} in Everlong Bot:"
-        log_rollbar_exception(
-            exception=exc, log_level=logging.CRITICAL, rollbar_log_prefix=_log_prefix
-        )
+        log_rollbar_exception(exception=exc, log_level=logging.CRITICAL, rollbar_log_prefix=_log_prefix)
         raise exc

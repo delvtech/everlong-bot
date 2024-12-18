@@ -1,4 +1,9 @@
-"""Bots for running everlong keepers in production."""
+"""Bots for fuzzing the everlong vault, keeper, and the underlying hyperdrive pool.
+
+This script launches a local anvil chain forked off of mainnet, and runs
+random trades on the hyperdrive pool and everlong vault, as well as running necessary
+keeper functions for vault maintenance.
+"""
 
 from __future__ import annotations
 
@@ -23,8 +28,8 @@ from everlong_bot.deploy_everlong import deploy_everlong
 from everlong_bot.everlong_types import IEverlongStrategyKeeperContract, IVaultContract
 from everlong_bot.keeper_bot import execute_keeper_call_on_vaults, get_all_vaults_from_keeper
 
+# Defines the whale addresses to fund the bots with
 DAI_ADDRESS = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
-
 MAINNET_WHALE_ADDRESSES = {
     # DAI
     DAI_ADDRESS: "0xf6e72Db5454dd049d0788e411b06CfAF16853042",
@@ -32,7 +37,7 @@ MAINNET_WHALE_ADDRESSES = {
 
 
 def _fuzz_ignore_errors(exc: Exception) -> bool:
-    """Function defining errors to ignore for pausing chain during fuzzing."""
+    """Function defining errors to ignore during fuzzing of hyperdrive pools."""
     # pylint: disable=too-many-return-statements
     # pylint: disable=too-many-branches
     # Ignored fuzz exceptions
@@ -82,7 +87,7 @@ def _fuzz_ignore_errors(exc: Exception) -> bool:
 
 
 def main(argv: Sequence[str] | None = None) -> None:
-    """Runs the checkpoint bot.
+    """Runs the everlong fuzzing.
 
     Arguments
     ---------
@@ -93,41 +98,44 @@ def main(argv: Sequence[str] | None = None) -> None:
 
     parsed_args = parse_arguments(argv)
 
+    # Set up rollbar
+    # TODO log additional crashes
     rollbar_environment_name = "everlong_bot"
     log_to_rollbar = initialize_rollbar(rollbar_environment_name)
 
-    # Initialize
+    # Get env variables
     keeper_contract_address = None
-    # TODO Abstract this method out for infra scripts
-    # Get the rpc uri from env variable
     rpc_uri = os.getenv("MAINNET_RPC_URI", None)
     if rpc_uri is None:
         raise ValueError("MAINNET_RPC_URI is not set")
-
-    # We match the chain id of mainnet to do use the earliest block lookup, since
-    # the chain is originally a fork of mainnet.
-    chain = LocalChain(fork_uri=rpc_uri, config=LocalChain.Config(chain_id=1))
 
     hyperdrive_address = os.getenv("HYPERDRIVE_ADDRESS", None)
     if hyperdrive_address is None:
         raise ValueError("HYPERDRIVE_ADDRESS is not set")
 
-    keeper_contract_address = deploy_everlong(chain, hyperdrive_address=hyperdrive_address, num_vaults=2)
-
     private_key = os.getenv("KEEPER_PRIVATE_KEY", None)
     if private_key is None:
         raise ValueError("KEEPER_PRIVATE_KEY is not set")
 
+    # Set up objects
+    # Get chain
+    chain = LocalChain(fork_uri=rpc_uri, config=LocalChain.Config())
+
+    # Set up hyperdrive pool object needed by agent0 fuzzing
+    hyperdrive_pool = LocalHyperdrive(chain, hyperdrive_address=hyperdrive_address, deploy=False)
+
+    # Set up keeper account
     keeper_account: LocalAccount = Account().from_key(private_key)
 
+    # Deploy everlong
+    keeper_contract_address = deploy_everlong(chain, hyperdrive_address=hyperdrive_address, num_vaults=2)
+
+    # Set up keeper contract pypechain object
     keeper_contract = IEverlongStrategyKeeperContract.factory(w3=chain._web3)(
         chain._web3.to_checksum_address(keeper_contract_address)
     )
-
+    # Query all vaults from the keeper
     vaults = get_all_vaults_from_keeper(chain, keeper_contract)
-
-    # Set up fuzzing environment
-    hyperdrive_pool = LocalHyperdrive(chain, hyperdrive_address=hyperdrive_address, deploy=False)
 
     # Ensure all whale account addresses are checksum addresses
     # TODO abstract this out to run_fuzz_bots
@@ -135,15 +143,20 @@ def main(argv: Sequence[str] | None = None) -> None:
         Web3.to_checksum_address(key): Web3.to_checksum_address(value) for key, value in MAINNET_WHALE_ADDRESSES.items()
     }
 
+    # Shortcut variables
     base_token_contract = hyperdrive_pool.interface.base_token_contract
-
     agents = None
-
     assert chain.config.rng is not None
 
+    # Run fuzzing
     while True:
         logging.info("Running fuzz bots...")
 
+        # Run fuzzing via agent0 function on underlying hyperdrive pool.
+        # By default, this sets up 4 agents.
+        # `check_invariance` also runs the pool's invariance checks after trades.
+        # We only run for 1 iteration here, as we want to make additional random trades
+        # wrt everlong.
         agents = run_fuzz_bots(
             chain,
             hyperdrive_pools=[hyperdrive_pool],
@@ -163,7 +176,7 @@ def main(argv: Sequence[str] | None = None) -> None:
             minimum_avg_agent_base=FixedPoint(-1),
         )
 
-        # Random vault deposit and/or withdrawal
+        # Run random vault deposit and/or withdrawal
         for agent in agents:
             # Pick a vault at random
             # numpy rng has type issues with lists
@@ -198,12 +211,13 @@ def main(argv: Sequence[str] | None = None) -> None:
                             shares=amount, receiver=agent.address, owner=agent.address
                         ).sign_transact_and_wait(account=agent.account, validate_transaction=True)
 
-        # Execute keeper call
+        # Execute keeper calls for vault maintenance
         execute_keeper_call_on_vaults(chain, keeper_account, keeper_contract)
 
         # TODO check vault invariance
 
         # Advance time for a day
+        # TODO parameterize the amount of time to advance.
         chain.advance_time(60 * 60 * 24)
 
 
@@ -248,7 +262,7 @@ def parse_arguments(argv: Sequence[str] | None = None) -> Args:
     return namespace_to_args(parser.parse_args())
 
 
-# Run the checkpoint bot.
+# Run fuzing
 if __name__ == "__main__":
     # Wrap everything in a try catch to log any non-caught critical errors and log to rollbar
     try:
